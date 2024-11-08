@@ -41,6 +41,8 @@ class PublisherandServiceNode : public rclcpp::Node {
         "change_string",
         std::bind(&PublisherandServiceNode::change_str, this,
                   std::placeholders::_1, std::placeholders::_2));
+
+    // Log a warning if the publish frequency is set to default
     if (this->get_parameter("publish_frequency").as_int() == 500) {
       RCLCPP_WARN_STREAM(
           this->get_logger(),
@@ -48,6 +50,7 @@ class PublisherandServiceNode : public rclcpp::Node {
               << this->get_parameter("publish_frequency").as_int());
     }
 
+    // Log a fatal error if the publish frequency is set very high
     if (this->get_parameter("publish_frequency").as_int() > 5000) {
       RCLCPP_FATAL_STREAM(
           this->get_logger(),
@@ -56,6 +59,7 @@ class PublisherandServiceNode : public rclcpp::Node {
       return;
     }
 
+    // Create a timer to publish the message at the specified frequency
     timer_ = this->create_wall_timer(
         std::chrono::milliseconds(
             this->get_parameter("publish_frequency").as_int()),
@@ -95,6 +99,8 @@ class PublisherandServiceNode : public rclcpp::Node {
                           "Received Service Request : " << request->new_string);
     }
   }
+
+  // Data members to store the message, publisher and service
   std_msgs::msg::String message;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
