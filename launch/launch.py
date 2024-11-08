@@ -18,14 +18,17 @@ def generate_launch_description():
         name='publisher_service_node',
         parameters=[{
             'publish_frequency': LaunchConfiguration('publish_frequency')
-        }]
+        }],
+        output='screen',
+        arguments=['--ros-args', '--log-level', 'DEBUG']
     )
 
     # Configure the Listener (Subscriber) node
     listener_node = Node(
         package='beginner_tutorials',
         executable='listener',
-        name='minimal_subscriber'
+        name='minimal_subscriber',
+        output='screen'
     )
 
     # Return the LaunchDescription with the nodes and argument
