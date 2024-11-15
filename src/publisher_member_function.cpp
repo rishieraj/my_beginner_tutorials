@@ -18,6 +18,9 @@
 #include <rclcpp/logging.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 
 #include <beginner_tutorials/srv/change_str.hpp>
 
@@ -59,6 +62,9 @@ class PublisherandServiceNode : public rclcpp::Node {
       return;
     }
 
+    tf_static_broadcaster_ =
+        std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
+
     // Create a timer to publish the message at the specified frequency
     timer_ = this->create_wall_timer(
         std::chrono::milliseconds(
@@ -75,6 +81,7 @@ class PublisherandServiceNode : public rclcpp::Node {
     auto message = this->message;
     RCLCPP_INFO_STREAM(this->get_logger(), "Publishing : " << message.data);
     publisher_->publish(message);
+    this->publish_talk_transform();
   }
 
   /**
@@ -100,11 +107,32 @@ class PublisherandServiceNode : public rclcpp::Node {
     }
   }
 
+  void publish_talk_transform() {
+    geometry_msgs::msg::TransformStamped t;
+
+    t.header.stamp = this->get_clock()->now();
+    t.header.frame_id = "world";
+    t.child_frame_id = "talk";
+
+    t.transform.translation.x = 0.1;
+    t.transform.translation.y = 0.1;
+    t.transform.translation.z = 0.1;
+    tf2::Quaternion q;
+    q.setRPY(0.1, 0.1, 0.1);
+    t.transform.rotation.x = q.x();
+    t.transform.rotation.y = q.y();
+    t.transform.rotation.z = q.z();
+    t.transform.rotation.w = q.w();
+
+    tf_static_broadcaster_->sendTransform(t);
+  }
+
   // Data members to store the message, publisher and service
   std_msgs::msg::String message;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
   rclcpp::Service<beginner_tutorials::srv::ChangeStr>::SharedPtr service_;
+  std::shared_ptr<tf2_ros::StaticTransformBroadcaster> tf_static_broadcaster_;
 };
 
 int main(int argc, char* argv[]) {
