@@ -10,18 +10,20 @@
  *
  */
 
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_ros/static_transform_broadcaster.h>
-
-#include <beginner_tutorials/srv/change_str.hpp>
 #include <cstddef>
 #include <functional>
-#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <memory>
+#include <string>
+
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
-#include <string>
+
+#include <beginner_tutorials/srv/change_str.hpp>
+
 
 /**
  * @brief ROS2 Node that publishes a string message and acts a service to change
@@ -105,6 +107,10 @@ class PublisherandServiceNode : public rclcpp::Node {
     }
   }
 
+  /**
+   * @brief Function to publish a static transform for the talker frame
+   *
+   */
   void publish_talk_transform() {
     geometry_msgs::msg::TransformStamped t;
 

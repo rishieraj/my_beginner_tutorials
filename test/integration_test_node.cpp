@@ -21,15 +21,26 @@
 //     - Use modern ROS2 syntax
 //     - Use Catch2 Fixture
 
-#include <beginner_tutorials/srv/change_str.hpp>
-#include <catch_ros2/catch_ros2.hpp>
-#include <chrono>
+/**
+ * @file
+ * @brief Integration test node for beginner_tutorials package.
+ *
+ * This file contains the integration test node for the beginner_tutorials
+ * package. The integration test node is responsible for testing the
+ * functionality of the nodes in the beginner_tutorials package.
+ */
+#include <ctime>
+#include <memory>
+#include <functional>
+
 #include <rclcpp/executors.hpp>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
 
-using namespace std::chrono_literals;
+#include <catch_ros2/catch_ros2.hpp>
+#include <beginner_tutorials/srv/change_str.hpp>
+
 using std_msgs::msg::String;
 
 ////////////////////////////////////////////////
@@ -91,21 +102,22 @@ TEST_CASE_METHOD(MyTestsFixture, "test service server", "[service]") {
   /**
    * 5.) Finally do the actual test:
    */
-  rclcpp::Time start_time =
-      rclcpp::Clock().now();  // reads /clock, if "use_sim_time" is true
+  std::time_t start_time = std::time(nullptr);  // Record start time
   bool service_found = false;
-  rclcpp::Duration duration = 0s;
+  double duration = 0;  // Duration in seconds
   RCLCPP_INFO_STREAM(Logger, "Performing Test...");
-  auto timeout = std::chrono::milliseconds((int)(TEST_DURATION * 1000));
 
-  if (client->wait_for_service(timeout)) {  // blocking
-    duration = (rclcpp::Clock().now() - start_time);
+  // Timeout value in seconds
+  const int timeout_seconds = static_cast<int>(TEST_DURATION);
+
+  // Wait for the service
+  if (client->wait_for_service(std::chrono::seconds(timeout_seconds))) {
+    duration = std::difftime(std::time(nullptr), start_time);
     service_found = true;
   }
 
-  RCLCPP_INFO_STREAM(Logger,
-                     "duration = " << duration.seconds()
-                                   << " service_found=" << service_found);
+  RCLCPP_INFO_STREAM(
+      Logger, "duration = " << duration << " service_found=" << service_found);
   CHECK(service_found);  // Test assertions - check that the servie was found
 }
 
@@ -128,7 +140,7 @@ TEST_CASE_METHOD(MyTestsFixture, "test topic talker", "[topic]") {
 
   // Define a callback that captures the additional parameter
   struct ListenerCallback {
-    ListenerCallback(bool &gotTopic) : gotTopic_(gotTopic) {}
+    explicit ListenerCallback(bool &gotTopic) : gotTopic_(gotTopic) {}
     void operator()(const String msg) const {
       RCLCPP_INFO_STREAM(Logger, "I heard:" << msg.data.c_str());
       gotTopic_ = true;
@@ -143,20 +155,19 @@ TEST_CASE_METHOD(MyTestsFixture, "test topic talker", "[topic]") {
   /**
    * 5.) Finally do the actual test:
    */
-  rclcpp::Rate rate(10.0);  // 10hz checks
-  auto start_time = rclcpp::Clock().now();
-  auto duration = rclcpp::Clock().now() - start_time;
-  auto timeout = rclcpp::Duration::from_seconds(TEST_DURATION);
-  RCLCPP_INFO_STREAM(Logger, "duration = " << duration.seconds()
-                                           << " timeout=" << timeout.seconds());
+  std::time_t start_time = std::time(nullptr);
+  double duration = 0;  // Duration in seconds
+  const double timeout_seconds = TEST_DURATION;
+  RCLCPP_INFO_STREAM(
+      Logger, "duration = " << duration << " timeout=" << timeout_seconds);
 
-  while (!got_topic && (duration < timeout)) {
+  while (!got_topic && (duration < timeout_seconds)) {
     rclcpp::spin_some(testerNode);
-    rate.sleep();
-    duration = (rclcpp::Clock().now() - start_time);
+    rclcpp::Rate(10.0).sleep();  // 10Hz
+    duration = std::difftime(std::time(nullptr), start_time);
   }
 
-  RCLCPP_INFO_STREAM(Logger, "duration = " << duration.seconds()
-                                           << " got_topic=" << got_topic);
+  RCLCPP_INFO_STREAM(Logger,
+                     "duration = " << duration << " got_topic=" << got_topic);
   CHECK(got_topic);  // Test assertions - check that the topic was received
 }

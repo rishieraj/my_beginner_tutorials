@@ -40,7 +40,7 @@ def generate_launch_description():
         executable='talker',
         name='publisher_service_node',
         parameters=[{
-            'freq': LaunchConfiguration('freq')
+            'publish_frequency': LaunchConfiguration('publish_frequency')
         }],
         output='screen',
         arguments=['--ros-args', '--log-level', 'INFO']
@@ -54,7 +54,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # create handle for conditional recording of ros bag
+    # Create handle for conditional recording of ros bag
     def conditional_rosbag_record(context):
         if LaunchConfiguration('enable_recording').perform(context) == 'true':
             return [
