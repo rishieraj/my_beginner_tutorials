@@ -18,8 +18,13 @@ execute_process(COMMAND cmake -E create_symlink
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(catch_ros2 REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(rosbag2 REQUIRED)
 
 # Generate interfaces in the 'srv' directory
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -29,7 +34,14 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
 # Adding the executables
 add_executable(talker src/publisher_member_function.cpp)
-ament_target_dependencies(talker rclcpp std_msgs)
+ament_target_dependencies(talker 
+  rclcpp
+  std_msgs
+  rclcpp
+  rosidl_default_generators
+  geometry_msgs
+  rclcpp
+  tf2_ros)
 
 add_executable(listener src/subscriber_member_function.cpp)
 ament_target_dependencies(listener rclcpp std_msgs)
@@ -55,15 +67,46 @@ install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
+  # disable these built-in tests
+  set(ament_cmake_lint_cmake_FOUND TRUE)
   set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
+  set(ament_cmake_flake8_FOUND TRUE)
+  set(ament_cmake_uncrustify_FOUND TRUE)
+
+  # build the integration test
+  ###########################################################################
+  # 1.) BUILD AND INSTALL THE INTEGRATION TEST NODE (aka Node that performs the test)  ##
+  ###########################################################################
+  add_executable(integration_test_node
+    test/integration_test_node.cpp
+  )
+
+  target_link_libraries(integration_test_node
+    catch_ros2::catch_ros2_with_node_main
+    "${cpp_typesupport_target}"
+  )
+
+  ament_target_dependencies(integration_test_node
+    rclcpp
+    std_msgs
+    rosidl_default_runtime
+    rosidl_default_generators
+    geometry_msgs
+  )
+
+  install(TARGETS
+    integration_test_node
+    DESTINATION lib/${PROJECT_NAME}
+  )
+
+  ######################################
+  ## 2.) ADD INTEGRATION TEST SUPPORT ##
+  ######################################
+  catch_ros2_add_integration_test (Catch2IntegrationTest
+    LAUNCH_FILE integration_test.launch.yaml
+  )
 endif()
+
 
 ament_package()

@@ -43,6 +43,13 @@ In order to initiate the publisher and subscriber node together using a launch f
 ros2 launch beginner_tutorials launch.py publish_frequency:=1000
 ```
 
+### Launching Pub along with Rosbag
+
+In order to launch the nodes along with `rosbag`, the following command needs to be run with the parameter flag
+```bash
+ros2 launch beginner_tutorials launch.py publish_frequency:=1000 enable_recording:=true
+```
+
 ### Calling the Service
 
 A service has been added to the talker node that can change the output string of the talker based on user input. The service can be called using the following command:
@@ -51,4 +58,34 @@ A service has been added to the talker node that can change the output string of
 ros2 service call /change_string beginner_tutorials/srv/ChangeStr "{new_string: User Input}"
 ```
 
-### 
+### Replaying Rosbag Topic Info
+In order for the Rosbag talker recodings to be replayed so that the listener can pick them up, the following commands can be run in sequence.  
+Open a fresh terminal and source the overlay as below:
+```bash
+source /opt/ros/humble/setup.bash
+# Go back to the ws directory
+cd ~/ros2_ws
+# After successfull build source the package
+source install/setup.bash
+# Run the subscriber node
+ros2 run beginner_tutorials listener
+```
+Then in another terminal, run the following
+```bash
+# Source the package
+source install/setup.bash
+# Play the rosbag recording
+ros2 bag play ./src/beginner_tutorials/results/rosbag2_2024_11_15-20_12_53
+```
+On returning to the listener terminal, it can be seen that the listener picks up the topic recordings of the talker.
+
+### Running Integration Tests using Catch2
+In order to check the results of the integration test, the following commands need to be run in sequence. In a new terminal
+```bash
+# Source the package
+source install/setup.bash
+# Run the test
+colcon test --packages-select beginner_tutorials
+# Display the output
+cat log/latest_test/integration_test/stdout_stderr.log
+```
