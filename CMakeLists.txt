@@ -24,6 +24,7 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(rosbag2 REQUIRED)
 
 # Generate interfaces in the 'srv' directory
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -33,7 +34,14 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
 # Adding the executables
 add_executable(talker src/publisher_member_function.cpp)
-ament_target_dependencies(talker rclcpp std_msgs tf2 tf2_ros geometry_msgs)
+ament_target_dependencies(talker 
+  rclcpp
+  std_msgs
+  rclcpp
+  rosidl_default_generators
+  geometry_msgs
+  rclcpp
+  tf2_ros)
 
 add_executable(listener src/subscriber_member_function.cpp)
 ament_target_dependencies(listener rclcpp std_msgs)
@@ -83,6 +91,8 @@ if(BUILD_TESTING)
     rclcpp
     std_msgs
     rosidl_default_runtime
+    rosidl_default_generators
+    geometry_msgs
   )
 
   install(TARGETS

@@ -10,20 +10,18 @@
  *
  */
 
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+
+#include <beginner_tutorials/srv/change_str.hpp>
 #include <cstddef>
 #include <functional>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <memory>
-#include <string>
-
 #include <rclcpp/logging.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_ros/static_transform_broadcaster.h>
-#include <geometry_msgs/msg/transform_stamped.hpp>
-
-#include <beginner_tutorials/srv/change_str.hpp>
-
+#include <string>
 
 /**
  * @brief ROS2 Node that publishes a string message and acts a service to change
